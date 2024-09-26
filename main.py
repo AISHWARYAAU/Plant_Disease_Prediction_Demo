@@ -1,29 +1,35 @@
 import streamlit as st
 import tensorflow as tf
 import numpy as np
+import keras
+import os
 
+# Set Keras backend to TensorFlow
+os.environ["KERAS_BACKEND"] = "tensorflow"
 
-#Tensorflow Model Prediction
+# Load the model
+model = keras.saving.load_model("hf://nanocu/plant_disease")
+
+# Tensorflow Model Prediction
 def model_prediction(test_image):
-    model = tf.keras.models.load_model("plant_disease_model.h5")
-    image = tf.keras.preprocessing.image.load_img(test_image,target_size=(128,128))
+    image = tf.keras.preprocessing.image.load_img(test_image, target_size=(128, 128))
     input_arr = tf.keras.preprocessing.image.img_to_array(image)
-    input_arr = np.array([input_arr]) #convert single image to batch
+    input_arr = np.array([input_arr])  # Convert single image to batch
     predictions = model.predict(input_arr)
-    return np.argmax(predictions) #return index of max element
+    return np.argmax(predictions)  # Return index of max element
 
-#Sidebar
+# Sidebar
 st.sidebar.title("Dashboard")
-app_mode = st.sidebar.selectbox("Select Page",["Home","About","Disease Recognition"])
+app_mode = st.sidebar.selectbox("Select Page", ["Home", "About", "Disease Recognition"])
 
-#Main Page
-if(app_mode=="Home"):
+# Main Page
+if app_mode == "Home":
     st.header("PLANT DISEASE PREDICTION SYSTEM")
     image_path = "home_page.jpeg"
-    st.image(image_path,use_column_width=True)
+    st.image(image_path, use_column_width=True)
     st.markdown("""
     Welcome to the Plant Disease Prediction System! 🌿🔍
-    
+
     Our mission is to help in identifying plant diseases efficiently. Upload an image of a plant, and our system will analyze it to detect any signs of diseases. Together, let's protect our crops and ensure a healthier harvest!
 
     ### How It Works
@@ -43,45 +49,50 @@ if(app_mode=="Home"):
     Learn more about the project, our team, and our goals on the *About* page.
     """)
 
-#About Project
-elif(app_mode=="About"):
+# About Project
+elif app_mode == "About":
     st.header("About")
     st.markdown("""
                 #### About Dataset
-                This dataset is recreated using offline augmentation from the original dataset.The original dataset can be found on this github repo.
-                This dataset consists of about 87K rgb images of healthy and diseased crop leaves which is categorized into 38 different classes.The total dataset is divided into 80/20 ratio of training and validation set preserving the directory structure.
-                A new directory containing 33 test images is created later for prediction purpose.
+                This dataset is recreated using offline augmentation from the original dataset. The original dataset can be found on this GitHub repo.
+                This dataset consists of about 87K RGB images of healthy and diseased crop leaves which are categorized into 38 different classes. The total dataset is divided into an 80/20 ratio of training and validation set preserving the directory structure.
+                A new directory containing 33 test images is created later for prediction purposes.
                 #### Content
                 1. train (70295 images)
                 2. test (33 images)
                 3. validation (17572 images)
-
                 """)
 
-#Prediction Page
-elif(app_mode=="Disease Recognition"):
+# Prediction Page
+elif app_mode == "Disease Recognition":
     st.header("Disease Recognition")
     test_image = st.file_uploader("Choose an Image:")
-    if(st.button("Show Image")):
-        st.image(test_image,width=4,use_column_width=True)
-    #Predict button
-    if(st.button("Predict")):
-        st.snow()
-        st.write("Our Prediction")
-        result_index = model_prediction(test_image)
-        #Reading Labels
-        class_name = ['Apple__Apple_scab', 'Apple_Black_rot', 'Apple_Cedar_apple_rust', 'Apple__healthy',
-                    'Blueberry__healthy', 'Cherry(including_sour)_Powdery_mildew', 
-                    'Cherry_(including_sour)healthy', 'Corn(maize)_Cercospora_leaf_spot Gray_leaf_spot', 
-                    'Corn_(maize)Common_rust', 'Corn_(maize)Northern_Leaf_Blight', 'Corn(maize)_healthy', 
-                    'Grape__Black_rot', 'Grape_Esca(Black_Measles)', 'Grape__Leaf_blight(Isariopsis_Leaf_Spot)', 
-                    'Grape__healthy', 'Orange_Haunglongbing(Citrus_greening)', 'Peach___Bacterial_spot',
-                    'Peach__healthy', 'Pepper,_bell_Bacterial_spot', 'Pepper,_bell__healthy', 
-                    'Potato__Early_blight', 'Potato_Late_blight', 'Potato__healthy', 
-                    'Raspberry__healthy', 'Soybean_healthy', 'Squash__Powdery_mildew', 
-                    'Strawberry__Leaf_scorch', 'Strawberry_healthy', 'Tomato__Bacterial_spot', 
-                    'Tomato__Early_blight', 'Tomato_Late_blight', 'Tomato__Leaf_Mold', 
-                    'Tomato__Septoria_leaf_spot', 'Tomato__Spider_mites Two-spotted_spider_mite', 
-                    'Tomato__Target_Spot', 'Tomato_Tomato_Yellow_Leaf_Curl_Virus', 'Tomato__Tomato_mosaic_virus',
-                      'Tomato___healthy']
-        st.success("Model is Predicting it's a {}".format(class_name[result_index]))
+    if st.button("Show Image"):
+        if test_image is not None:
+            st.image(test_image, width=400, use_column_width=True)
+    # Predict button
+    if st.button("Predict"):
+        if test_image is not None:
+            st.snow()
+            st.write("Our Prediction")
+            result_index = model_prediction(test_image)
+            # Reading Labels
+            class_name = [
+                'Apple__Apple_scab', 'Apple_Black_rot', 'Apple_Cedar_apple_rust', 'Apple__healthy',
+                'Blueberry__healthy', 'Cherry(including_sour)_Powdery_mildew',
+                'Cherry_(including_sour)healthy', 'Corn(maize)_Cercospora_leaf_spot Gray_leaf_spot',
+                'Corn_(maize)Common_rust', 'Corn_(maize)Northern_Leaf_Blight', 'Corn(maize)_healthy',
+                'Grape__Black_rot', 'Grape_Esca(Black_Measles)', 'Grape__Leaf_blight(Isariopsis_Leaf_Spot)',
+                'Grape__healthy', 'Orange_Haunglongbing(Citrus_greening)', 'Peach___Bacterial_spot',
+                'Peach__healthy', 'Pepper,_bell_Bacterial_spot', 'Pepper,_bell__healthy',
+                'Potato__Early_blight', 'Potato_Late_blight', 'Potato__healthy',
+                'Raspberry__healthy', 'Soybean_healthy', 'Squash__Powdery_mildew',
+                'Strawberry__Leaf_scorch', 'Strawberry_healthy', 'Tomato__Bacterial_spot',
+                'Tomato__Early_blight', 'Tomato_Late_blight', 'Tomato__Leaf_Mold',
+                'Tomato__Septoria_leaf_spot', 'Tomato__Spider_mites Two-spotted_spider_mite',
+                'Tomato__Target_Spot', 'Tomato_Tomato_Yellow_Leaf_Curl_Virus', 'Tomato__Tomato_mosaic_virus',
+                'Tomato___healthy'
+            ]
+            st.success("Model is Predicting it's a {}".format(class_name[result_index]))
+        else:
+            st.error("Please upload an image before predicting.")
